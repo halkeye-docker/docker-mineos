@@ -26,7 +26,7 @@ auth.authenticate_shadow = function(username, plaintext, callback) {
         return callback(false);
       }
       if (res === false) { return callback(false); }
-      callback(username);
+      callback('mc'); // this returns a user mapped to the system for now, users[username].username);
     });
   });
 };
