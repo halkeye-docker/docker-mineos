@@ -1,4 +1,4 @@
-FROM node:5
+FROM node:6.9
 
 VOLUME /var/games/minecraft
 #arbitrarily assigned ports for 5 servers. change if you need to.
