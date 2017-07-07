@@ -23,6 +23,7 @@ RUN apt-get update -y && apt-get install -y \
 RUN git clone https://github.com/hexparrot/mineos-node.git /usr/src/app
 RUN cd /usr/src/app
 RUN npm install --production && npm install bcrypt
+RUN cp /usr/src/app/mineos.conf /etc/mineos.conf
 COPY auth.js /usr/src/app
 
 #generate a cert. sync before generating to avoid an error
