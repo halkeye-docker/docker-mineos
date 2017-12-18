@@ -1,30 +1,31 @@
 properties([[$class: 'GithubProjectProperty', displayName: '', projectUrlStr: 'https://github.com/halkeye/docker-mineos/']])
+def imageName = "halkeye/docker-mineos";
+node {
+  def app
+  def commitHash
+  def branchName
+  stage('Checkout') {
+    /* Checkout the code we are currently running against */
+    def scmVars = checkout(scm)
+    commitHash = scmVars.GIT_COMMIT.take(6)
+    branchName = scmVars.GIT_BRANCH
+  }
 
-pipeline {
-    agent any
+  stage('Build') {
+    ansiColor('xterm') {
+      app = docker.build "${imageName}:${commitHash}"
+    }
+  }
 
-    options {
-        timeout(time: 10, unit: 'MINUTES')
-        ansiColor('xterm')
-    }
-    stages {
-        stage('Build') {
-            steps {
-                sh 'docker build -t halkeye/docker-mineos .'
-            }
+  if (branchName == "master") {
+    stage('Publish') {
+      /* Push the image to Docker Hub, using credentials we have setup separately on the worker node */
+      ansiColor('xterm') {
+        withDockerRegistry([credentialsId: 'dockerhub-halkeye']) {
+          app.push commitHash
+          app.push 'latest'
         }
-        
-        stage('Deploy') {
-            when {
-                branch 'master'
-            }
-            environment { 
-                DOCKER = credentials('dockerhub-halkeye') 
-            }
-            steps {
-                sh 'echo $DOCKER_PSW | docker login --username $DOCKER_USR --password-stdin'
-                sh 'docker push halkeye/docker-mineos'
-            }
-        }
+      }
     }
+  }
 }
