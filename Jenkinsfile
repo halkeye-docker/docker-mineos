@@ -1,18 +1,30 @@
-node {
-    def app
-    stage('Preparation') { // for display purposes
-        git 'https://github.com/halkeye/docker-mineos.git'
+properties([[$class: 'GithubProjectProperty', displayName: '', projectUrlStr: 'https://github.com/halkeye/docker-mineos/']])
+
+pipeline {
+    agent any
+
+    options {
+        timeout(time: 10, unit: 'MINUTES')
+        ansiColor('xterm')
     }
-    stage('Build') {
-        wrap([$class: 'AnsiColorBuildWrapper']) {
-            app = docker.build("halkeye/docker-mineos:${BUILD_NUMBER}")
-            app.tag("latest")
+    stages {
+        stage('Build') {
+            steps {
+                sh 'docker build -t halkeye/docker-mineos .'
+            }
         }
-    }
-    stage('Upload') {
-       withDockerRegistry([credentialsId: 'dockerhub-halkeye']) {
-           app.push("${BUILD_NUMBER}")
-           app.push('latest')
-       }
+        
+        stage('Deploy') {
+            when {
+                branch 'master'
+            }
+            environment { 
+                DOCKER = credentials('dockerhub-halkeye') 
+            }
+            steps {
+                sh 'echo $DOCKER_PSW | docker login --username $DOCKER_USR --password-stdin'
+                sh 'docker push halkeye/docker-mineos'
+            }
+        }
     }
 }
