@@ -22,7 +22,7 @@ pipeline {
                 DOCKER = credentials('dockerhub-halkeye') 
             }
             steps {
-                sh 'echo $DOCKER_PSW | docker login --username $DOCKER_USR --password-stdin'
+                sh 'docker login --username $DOCKER_USR --password=$DOCKER_PSW'
                 sh 'docker push halkeye/docker-mineos'
             }
         }
